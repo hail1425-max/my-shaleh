@@ -436,7 +436,7 @@
       <label class="form-label">ملاحظات (اختياري)</label>
       <input class="form-input" id="f-notes" type="text" placeholder="أي تفاصيل...">
     </div>
-    <button class="submit-btn" onclick="addBooking()">✓ تأكيد الحجز</button>
+ <button class="submit-btn" onclick="addBooking(); showKafshah()">تأكيد الحجز ✅</button>
     <div class="msg" id="add-msg"></div>
   </div>
 </div>
@@ -727,7 +727,9 @@
   window.checkConflict = checkConflict;
 </script>
  <script>
-function showKafshah() { const overlay = document.createElement('div');
+function showKafshah()
+{ const overlay = 
+  document.createElement('div');
 overlay.style.position = 'fixed';
 overlay.style.top = '0';
 overlay.style.left = '0';
