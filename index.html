@@ -726,11 +726,31 @@
   window.nextM = nextM;
   window.checkConflict = checkConflict;
 </script>
-  <script>
+ <script>
 document.addEventListener('click', function(e) {
-    // بيبحث عن الزر بمجرد الضغط عليه
     if (e.target && e.target.textContent.includes('تأكيد الحجز')) {
-        alert('تم تأكيد الحجز بنجاح! سيظهر للشريكين فوراً.');
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'white';
+        overlay.style.zIndex = '9999';
+        overlay.style.display = 'flex';
+        overlay.style.flexDirection = 'column';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        
+        // ملاحظة: تأكد من نسخ اسم الصورة بالضبط من GitHub
+        overlay.innerHTML = `
+            <img src="لقطة شاشة 2026-05-11 043957.png" style="max-width:90%; border-radius: 20px; box-shadow: 0 0 20px rgba(0,0,0,0.5);">
+            <h1 style="color: black; margin-top: 20px; font-family: sans-serif;">تم كفش راعي الشاليه! 😂</h1>
+        `;
+        
+        document.body.appendChild(overlay);
+        
+        setTimeout(() => { overlay.remove(); }, 7000);
     }
 });
 </script>
