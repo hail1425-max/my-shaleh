@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>حجوزات الشاليه</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #f0f2ff;
+      --text2: #8b90aa;
+      --accent: #4f8aff;
+      --accent-dim: rgba(79,138,255,0.12);
+      --green: #2dd4a0;
+      --green-dim: rgba(45,212,160,0.12);
+      --red: #ff6b6b;
+      --red-dim: rgba(255,107,107,0.12);
+      --amber: #f5a623;
+      --amber-dim: rgba(245,166,35,0.12);
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ─── LAYOUT ─── */
+    .app { max-width: 480px; margin: 0 auto; padding: 0 0 100px; }
+
+    /* ─── HEADER ─── */
+    .header {
+      padding: 28px 20px 0;
+      margin-bottom: 24px;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .header h1 { font-size: 22px; font-weight: 700; }
+    .live-badge {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; color: var(--green);
+      background: var(--green-dim);
+      padding: 4px 10px; border-radius: 20px;
+    }
+    .live-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .header p { font-size: 13px; color: var(--text2); }
+
+    /* ─── STATS ROW ─── */
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      padding: 0 20px;
+      margin-bottom: 24px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .stat-n { font-size: 24px; font-weight: 700; color: var(--text); }
+    .stat-l { font-size: 11px; color: var(--text2); margin-top: 3px; }
+
+    /* ─── TABS ─── */
+    .tabs {
+      position: fixed;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 100%; max-width: 480px;
+      background: var(--surface);
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      z-index: 100;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .tab {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 12px 8px;
+      font-size: 11px;
+      color: var(--text2);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-family: 'Tajawal', sans-serif;
+      transition: color .2s;
+    }
+    .tab svg { width: 22px; height: 22px; }
+    .tab.active { color: var(--accent); }
+    .tab-indicator {
+      position: absolute;
+      top: 0; height: 2px;
+      background: var(--accent);
+      border-radius: 0 0 2px 2px;
+      transition: all .25s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ─── SECTION ─── */
+    .section { padding: 0 20px; display: none; }
+    .section.active { display: block; }
+    .section-title {
+      font-size: 11px; font-weight: 700;
+      color: var(--text2);
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ─── CALENDAR ─── */
+    .cal-nav {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .cal-month { font-size: 17px; font-weight: 700; }
+    .cal-btn {
+      width: 34px; height: 34px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cal-btn:hover { background: var(--surface2); }
+
+    .cal-legend {
+      display: flex; gap: 14px;
+      margin-bottom: 12px;
+    }
+    .leg { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+    .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7,1fr);
+      gap: 4px;
+    }
+    .cal-day-name {
+      font-size: 11px; color: var(--text2);
+      text-align: center; padding: 6px 0;
+    }
+    .cal-day {
+      aspect-ratio: 1;
+      border-radius: var(--radius-sm);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      border: 0.5px solid var(--border);
+      background: var(--surface);
+      gap: 2px;
+      transition: all .15s;
+      position: relative;
+    }
+    .cal-day:hover { background: var(--surface2); border-color: var(--border2); }
+    .cal-day.empty { background: none; border: none; cursor: default; pointer-events: none; }
+    .cal-day.today { border-color: var(--accent); color: var(--accent); }
+    .cal-day.past { opacity: .3; cursor: default; pointer-events: none; }
+    .cal-day.booked { background: var(--green-dim); border-color: rgba(45,212,160,.3); }
+    .cal-day.booked:hover { background: rgba(45,212,160,.2); }
+    .cal-day-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--green); }
+
+    /* ─── BOOKING CARD ─── */
+    .booking-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .booking-card:hover { background: var(--surface2); border-color: var(--border2); }
+    .avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .booking-info { flex: 1; min-width: 0; }
+    .booking-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+    .booking-dates { font-size: 12px; color: var(--text2); }
+    .booking-nights {
+      font-size: 13px; font-weight: 700;
+      color: var(--green);
+      white-space: nowrap;
+    }
+    .del-btn {
+      background: none; border: none;
+      color: var(--text2); cursor: pointer;
+      font-size: 18px; padding: 4px;
+      border-radius: 6px;
+      transition: color .15s, background .15s;
+    }
+    .del-btn:hover { color: var(--red); background: var(--red-dim); }
+
+    .empty-state {
+      text-align: center;
+      padding: 48px 0;
+      color: var(--text2);
+    }
+    .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: .4; }
+    .empty-state p { font-size: 14px; }
+
+    /* ─── FORM ─── */
+    .form-group { margin-bottom: 16px; }
+    .form-label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 6px; }
+    .form-input {
+      width: 100%;
+      background: var(--surface);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 15px;
+      font-family: 'Tajawal', sans-serif;
+      padding: 11px 14px;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .conflict-box {
+      background: var(--amber-dim);
+      border: 0.5px solid rgba(245,166,35,.3);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--amber);
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .submit-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-family: 'Tajawal', sans-serif;
+      font-weight: 700;
+      padding: 14px;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+      margin-top: 4px;
+    }
+    .submit-btn:hover { opacity: .9; }
+    .submit-btn:active { transform: scale(.99); }
+
+    .msg {
+      margin-top: 12px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      display: none;
+      text-align: center;
+    }
+    .msg-ok { background: var(--green-dim); color: var(--green); }
+    .msg-err { background: var(--red-dim); color: var(--red); }
+
+    /* ─── POPUP ─── */
+    .overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .overlay.show { display: flex; }
+    .popup {
+      background: var(--surface);
+      border-radius: var(--radius) var(--radius) 0 0;
+      border-top: 0.5px solid var(--border2);
+      padding: 24px 24px 40px;
+      width: 100%; max-width: 480px;
+      animation: slideUp .25s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .popup-handle {
+      width: 36px; height: 4px;
+      background: var(--border2);
+      border-radius: 2px;
+      margin: 0 auto 20px;
+    }
+    .popup h3 { font-size: 19px; font-weight: 700; margin-bottom: 16px; }
+    .popup-row {
+      display: flex; justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 0.5px solid var(--border);
+      font-size: 14px;
+    }
+    .popup-row:last-of-type { border: none; }
+    .popup-label { color: var(--text2); }
+    .popup-val { font-weight: 700; }
+    .popup-close {
+      width: 100%;
+      margin-top: 16px;
+      background: var(--surface2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 15px;
+      font-family: 'Tajawal', sans-serif;
+      padding: 12px;
+      cursor: pointer;
+    }
+
+    /* ─── LOADING ─── */
+    .loading {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px;
+      z-index: 999;
+      transition: opacity .4s;
+    }
+    .loading.hide { opacity: 0; pointer-events: none; }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading p { font-size: 14px; color: var(--text2); }
+  </style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <p>جاري التحميل...</p>
+</div>
+
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <h1>🏡 حجوزات الشاليه</h1>
+      <div class="live-badge"><div class="live-dot"></div> مباشر</div>
+    </div>
+    <p>أي حجز يظهر فوراً للشريكين</p>
+  </div>
+
+  <div class="stats" id="stats">
+    <div class="stat"><div class="stat-n" id="s-total">—</div><div class="stat-l">إجمالي</div></div>
+    <div class="stat"><div class="stat-n" id="s-upcoming">—</div><div class="stat-l">قادمة</div></div>
+    <div class="stat"><div class="stat-n" id="s-free">—</div><div class="stat-l">أيام متاحة</div></div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="section active" id="sec-cal">
+    <div class="cal-nav">
+      <button class="cal-btn" onclick="prevM()">&#8250;</button>
+      <span class="cal-month" id="cal-title"></span>
+      <button class="cal-btn" onclick="nextM()">&#8249;</button>
+    </div>
+    <div class="cal-legend">
+      <div class="leg"><div class="leg-dot" style="background:var(--green)"></div> محجوز</div>
+      <div class="leg"><div class="leg-dot" style="background:var(--border2)"></div> متاح</div>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- BOOKINGS LIST -->
+  <div class="section" id="sec-list">
+    <div class="section-title">جميع الحجوزات</div>
+    <div id="blist"></div>
+  </div>
+
+  <!-- ADD BOOKING -->
+  <div class="section" id="sec-add">
+    <div class="section-title">حجز جديد</div>
+    <div class="conflict-box" id="conflict">⚠ تنبيه: هذه التواريخ فيها تعارض مع حجز موجود</div>
+    <div class="form-group">
+      <label class="form-label">اسم العميل</label>
+      <input class="form-input" id="f-name" type="text" placeholder="مثال: محمد العتيبي">
+    </div>
+    <div class="form-row form-group">
+      <div>
+        <label class="form-label">تاريخ الدخول</label>
+        <input class="form-input" id="f-in" type="date" onchange="checkConflict()">
+      </div>
+      <div>
+        <label class="form-label">تاريخ الخروج</label>
+        <input class="form-input" id="f-out" type="date" onchange="checkConflict()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">رقم الجوال (اختياري)</label>
+      <input class="form-input" id="f-phone" type="tel" placeholder="05xxxxxxxx">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ملاحظات (اختياري)</label>
+      <input class="form-input" id="f-notes" type="text" placeholder="أي تفاصيل...">
+    </div>
+    <button class="submit-btn" onclick="addBooking()">✓ تأكيد الحجز</button>
+    <div class="msg" id="add-msg"></div>
+  </div>
+</div>
+
+<!-- BOTTOM TABS -->
+<nav class="tabs" id="tabs">
+  <div class="tab-indicator" id="indicator"></div>
+  <button class="tab active" onclick="switchTab(0)" id="tab0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    التقويم
+  </button>
+  <button class="tab" onclick="switchTab(1)" id="tab1">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    الحجوزات
+  </button>
+  <button class="tab" onclick="switchTab(2)" id="tab2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    حجز جديد
+  </button>
+</nav>
+
+<!-- BOOKING DETAIL POPUP -->
+<div class="overlay" id="overlay" onclick="closePopup(event)">
+  <div class="popup">
+    <div class="popup-handle"></div>
+    <h3 id="pop-name"></h3>
+    <div class="popup-row"><span class="popup-label">تاريخ الدخول</span><span class="popup-val" id="pop-in"></span></div>
+    <div class="popup-row"><span class="popup-label">تاريخ الخروج</span><span class="popup-val" id="pop-out"></span></div>
+    <div class="popup-row"><span class="popup-label">عدد الليالي</span><span class="popup-val" id="pop-nights"></span></div>
+    <div class="popup-row" id="pop-phone-row"><span class="popup-label">الجوال</span><span class="popup-val" id="pop-phone"></span></div>
+    <div class="popup-row" id="pop-notes-row"><span class="popup-label">ملاحظات</span><span class="popup-val" id="pop-notes"></span></div>
+    <button class="popup-close" onclick="closePopup()">إغلاق</button>
+  </div>
+</div>
+
+<!-- FIREBASE SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  // ═══════════════════════════════════════════════
+  // 🔧 ضع هنا بيانات مشروعك من Firebase
+  // (راجع ملف SETUP.md لمعرفة كيف تحصل عليها)
+  // ═══════════════════════════════════════════════
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+    projectId: "YOUR_PROJECT",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const bookingsRef = ref(db, 'bookings');
+
+  // مشاركة الدوال مع الكود الخارجي
+  window._db = db;
+  window._bookingsRef = bookingsRef;
+  window._push = push;
+  window._remove = remove;
+  window._ref = ref;
+  window._onValue = onValue;
+
+  // تحميل البيانات في الوقت الفعلي
+  onValue(bookingsRef, (snapshot) => {
+    window._bookings = [];
+    snapshot.forEach((child) => {
+      window._bookings.push({ id: child.key, ...child.val() });
+    });
+    window._bookings.sort((a,b) => a.checkin.localeCompare(b.checkin));
+    if (window._ready) {
+      window.renderAll();
+    }
+  });
+
+  // إخفاء شاشة التحميل
+  setTimeout(() => {
+    document.getElementById('loading').classList.add('hide');
+    window._ready = true;
+    window.renderAll();
+  }, 1200);
+</script>
+
+<script>
+  window._bookings = window._bookings || [];
+  window._ready = false;
+
+  const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  const DAY_NAMES = ['أح','إث','ث','أر','خ','ج','س'];
+  const today = new Date().toISOString().slice(0,10);
+  let vy = new Date().getFullYear(), vm = new Date().getMonth();
+  let currentTab = 0;
+
+  function nights(b) {
+    return Math.round((new Date(b.checkout) - new Date(b.checkin)) / 864e5);
+  }
+
+  function bookedSet() {
+    const s = {};
+    (window._bookings || []).forEach(b => {
+      let d = new Date(b.checkin), e = new Date(b.checkout);
+      while (d < e) {
+        s[d.toISOString().slice(0,10)] = b;
+        d.setDate(d.getDate() + 1);
+      }
+    });
+    return s;
+  }
+
+  function renderAll() {
+    renderStats();
+    if (currentTab === 0) renderCal();
+    if (currentTab === 1) renderList();
+  }
+
+  function renderStats() {
+    const bk = window._bookings || [];
+    const now = new Date(today);
+    const upcoming = bk.filter(b => new Date(b.checkin) >= now);
+    const bs = bookedSet();
+    const dim = new Date(vy, vm+1, 0).getDate();
+    let free = 0;
+    for (let d=1; d<=dim; d++) {
+      const k = vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      if (!bs[k] && k >= today) free++;
+    }
+    document.getElementById('s-total').textContent = bk.length;
+    document.getElementById('s-upcoming').textContent = upcoming.length;
+    document.getElementById('s-free').textContent = free;
+  }
+
+  function renderCal() {
+    document.getElementById('cal-title').textContent = MONTHS[vm] + ' ' + vy;
+    const grid = document.getElementById('cal-grid');
+    grid.innerHTML = '';
+    DAY_NAMES.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-day-name';
+      el.textContent = d;
+      grid.appendChild(el);
+    });
+    const first = new Date(vy, vm, 1).getDay();
+    const dim = new Date(vy, vm+1, 0).getDate();
+    const bs = bookedSet();
+    for (let i=0; i<first; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      grid.appendChild(el);
+    }
+    for (let d=1; d<=dim; d++) {
+      const ds = vy+'-'+String(vm+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+      const el = document.createElement('div');
+      const b = bs[ds];
+      el.className = 'cal-day' + (ds < today ? ' past' : '') + (ds === today ? ' today' : '') + (b ? ' booked' : '');
+      el.innerHTML = '<span>' + d + '</span>';
+      if (b) {
+        el.innerHTML += '<div class="cal-day-dot"></div>';
+        el.onclick = () => openPopup(b);
+        el.title = b.name;
+      }
+      grid.appendChild(el);
+    }
+    renderStats();
+  }
+
+  function renderList() {
+    const bk = window._bookings || [];
+    const list = document.getElementById('blist');
+    if (!bk.length) {
+      list.innerHTML = `<div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <p>لا توجد حجوزات بعد</p>
+      </div>`;
+      return;
+    }
+    list.innerHTML = bk.map(b => {
+      const initials = b.name.split(' ').map(x=>x[0]).join('').slice(0,2);
+      const n = nights(b);
+      return `<div class="booking-card" onclick="openPopup(${JSON.stringify(b).replace(/"/g,'&quot;')})">
+        <div class="avatar">${initials}</div>
+        <div class="booking-info">
+          <div class="booking-name">${b.name}</div>
+          <div class="booking-dates">${b.checkin} ← ${b.checkout}</div>
+        </div>
+        <div class="booking-nights">${n} ليلة</div>
+        <button class="del-btn" onclick="event.stopPropagation();deleteBooking('${b.id}')" title="حذف">🗑</button>
+      </div>`;
+    }).join('');
+  }
+
+  function checkConflict() {
+    const ci = document.getElementById('f-in').value;
+    const co = document.getElementById('f-out').value;
+    const box = document.getElementById('conflict');
+    if (!ci || !co) { box.style.display='none'; return; }
+    const bs = bookedSet();
+    let d = new Date(ci), e = new Date(co), found = false;
+    while (d < e) { if (bs[d.toISOString().slice(0,10)]) { found=true; break; } d.setDate(d.getDate()+1); }
+    box.style.display = found ? 'block' : 'none';
+  }
+
+  async function addBooking() {
+    const name = document.getElementById('f-name').value.trim();
+    const ci   = document.getElementById('f-in').value;
+    const co   = document.getElementById('f-out').value;
+    const phone = document.getElementById('f-phone').value.trim();
+    const notes = document.getElementById('f-notes').value.trim();
+    const msg = document.getElementById('add-msg');
+
+    const show = (txt, ok) => {
+      msg.textContent = txt;
+      msg.className = 'msg ' + (ok ? 'msg-ok' : 'msg-err');
+      msg.style.display = 'block';
+      setTimeout(() => msg.style.display='none', 3500);
+    };
+
+    if (!name || !ci || !co) { show('يرجى تعبئة الاسم والتواريخ', false); return; }
+    if (ci >= co) { show('تاريخ الخروج يجب أن يكون بعد الدخول', false); return; }
+
+    try {
+      await window._push(window._bookingsRef, { name, checkin: ci, checkout: co, phone, notes, added: Date.now() });
+      document.getElementById('f-name').value = '';
+      document.getElementById('f-in').value = '';
+      document.getElementById('f-out').value = '';
+      document.getElementById('f-phone').value = '';
+      document.getElementById('f-notes').value = '';
+      document.getElementById('conflict').style.display = 'none';
+      show('✓ تم تسجيل الحجز — الشريك يشوفه الآن', true);
+    } catch(e) {
+      show('خطأ في الحفظ — تحقق من الاتصال', false);
+    }
+  }
+
+  async function deleteBooking(id) {
+    if (!confirm('تأكيد حذف الحجز؟')) return;
+    try {
+      await window._remove(window._ref(window._db, 'bookings/' + id));
+    } catch(e) { alert('فشل الحذف'); }
+  }
+
+  function openPopup(b) {
+    if (typeof b === 'string') b = JSON.parse(b);
+    document.getElementById('pop-name').textContent = b.name;
+    document.getElementById('pop-in').textContent = b.checkin;
+    document.getElementById('pop-out').textContent = b.checkout;
+    document.getElementById('pop-nights').textContent = nights(b) + ' ليلة';
+    const pr = document.getElementById('pop-phone-row');
+    pr.style.display = b.phone ? '' : 'none';
+    document.getElementById('pop-phone').textContent = b.phone || '';
+    const nr = document.getElementById('pop-notes-row');
+    nr.style.display = b.notes ? '' : 'none';
+    document.getElementById('pop-notes').textContent = b.notes || '';
+    document.getElementById('overlay').classList.add('show');
+  }
+
+  function closePopup(e) {
+    if (!e || e.target === document.getElementById('overlay')) {
+      document.getElementById('overlay').classList.remove('show');
+    }
+  }
+
+  function switchTab(i) {
+    currentTab = i;
+    ['sec-cal','sec-list','sec-add'].forEach((id,idx) => {
+      document.getElementById(id).classList.toggle('active', idx===i);
+    });
+    document.querySelectorAll('.tab').forEach((el,idx) => {
+      el.classList.toggle('active', idx===i);
+    });
+    if (i===0) renderCal();
+    if (i===1) renderList();
+  }
+
+  function prevM() { if(vm===0){vm=11;vy--;}else vm--; renderCal(); }
+  function nextM() { if(vm===11){vm=0;vy++;}else vm++; renderCal(); }
+
+  window.renderAll = renderAll;
+  window.openPopup = openPopup;
+  window.closePopup = closePopup;
+  window.deleteBooking = deleteBooking;
+  window.addBooking = addBooking;
+  window.switchTab = switchTab;
+  window.prevM = prevM;
+  window.nextM = nextM;
+  window.checkConflict = checkConflict;
+</script>
+</body>
+</html>
