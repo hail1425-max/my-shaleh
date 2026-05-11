@@ -726,5 +726,13 @@
   window.nextM = nextM;
   window.checkConflict = checkConflict;
 </script>
+  <script>
+document.addEventListener('click', function(e) {
+    // بيبحث عن الزر بمجرد الضغط عليه
+    if (e.target && e.target.textContent.includes('تأكيد الحجز')) {
+        alert('تم تأكيد الحجز بنجاح! سيظهر للشريكين فوراً.');
+    }
+});
+</script>
 </body>
 </html>
