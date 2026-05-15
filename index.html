@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title> حجوزات شاليه ايلفان</title>
+  <title>حجوزات شاليه ايلفان</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -378,7 +378,7 @@
 <div class="app">
   <div class="header">
     <div class="header-top">
-      <h1>🏡  حجوزات شاليه ايلفان</h1>
+      <h1>🏡 حجوزات شاليه ايلفان</h1>
       <div class="live-badge"><div class="live-dot"></div> مباشر</div>
     </div>
     <p>أي حجز يظهر فوراً للشريكين</p>
@@ -436,7 +436,7 @@
       <label class="form-label">ملاحظات (اختياري)</label>
       <input class="form-input" id="f-notes" type="text" placeholder="أي تفاصيل...">
     </div>
- <button class="submit-btn" onclick="addBooking(); showKafshah()">تأكيد الحجز ✅</button>
+    <button class="submit-btn" onclick="addBooking()">✓ تأكيد الحجز</button>
     <div class="msg" id="add-msg"></div>
   </div>
 </div>
@@ -472,75 +472,65 @@
   </div>
 </div>
 
-<!-- FIREBASE SDK -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getDatabase, ref, onValue, push, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-  // ═══════════════════════════════════════════════
-  // 🔧 ضع هنا بيانات مشروعك من Firebase
-  // (راجع ملف SETUP.md لمعرفة كيف تحصل عليها)
-  // ═══════════════════════════════════════════════
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-  const bookingsRef = ref(db, 'bookings');
-
-  // مشاركة الدوال مع الكود الخارجي
-  window._db = db;
-  window._bookingsRef = bookingsRef;
-  window._push = push;
-  window._remove = remove;
-  window._ref = ref;
-  window._onValue = onValue;
-
-  // تحميل البيانات في الوقت الفعلي
-  onValue(bookingsRef, (snapshot) => {
-    window._bookings = [];
-    snapshot.forEach((child) => {
-      window._bookings.push({ id: child.key, ...child.val() });
-    });
-    window._bookings.sort((a,b) => a.checkin.localeCompare(b.checkin));
-    if (window._ready) {
-      window.renderAll();
-    }
-  });
-
-  // إخفاء شاشة التحميل
-  setTimeout(() => {
-    document.getElementById('loading').classList.add('hide');
-    window._ready = true;
-    window.renderAll();
-  }, 1200);
-</script>
+<!-- SUPABASE SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  window._bookings = window._bookings || [];
-  window._ready = false;
+  // ═══════════════════════════════════════════
+  // 🔧 إعداد Supabase
+  // ═══════════════════════════════════════════
+  const SUPABASE_URL = 'https://yjgsvdkhmdpbvcirklya.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_UmBqfWyG-eLHXN73KkFpcQ_UxFhpgbI';
 
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // ═══════════════════════════════════════════
+  // متغيرات عامة
+  // ═══════════════════════════════════════════
+  window._bookings = [];
   const MONTHS = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   const DAY_NAMES = ['أح','إث','ث','أر','خ','ج','س'];
   const today = new Date().toISOString().slice(0,10);
   let vy = new Date().getFullYear(), vm = new Date().getMonth();
   let currentTab = 0;
 
+  // ═══════════════════════════════════════════
+  // تحميل البيانات + مزامنة فورية
+  // ═══════════════════════════════════════════
+  async function loadBookings() {
+    const { data, error } = await db
+      .from('bookings')
+      .select('*')
+      .order('check_in', { ascending: true });
+
+    if (error) {
+      console.error('خطأ في تحميل البيانات:', error);
+      return;
+    }
+
+    window._bookings = data || [];
+    renderAll();
+  }
+
+  // مزامنة فورية - أي تغيير يظهر للشريك فوراً
+  db.channel('bookings-changes')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings' }, () => {
+      loadBookings();
+    })
+    .subscribe();
+
+  // ═══════════════════════════════════════════
+  // دوال العرض
+  // ═══════════════════════════════════════════
   function nights(b) {
-    return Math.round((new Date(b.checkout) - new Date(b.checkin)) / 864e5);
+    return Math.round((new Date(b.check_out) - new Date(b.check_in)) / 864e5);
   }
 
   function bookedSet() {
     const s = {};
     (window._bookings || []).forEach(b => {
-      let d = new Date(b.checkin), e = new Date(b.checkout);
+      let d = new Date(b.check_in), e = new Date(b.check_out);
       while (d < e) {
         s[d.toISOString().slice(0,10)] = b;
         d.setDate(d.getDate() + 1);
@@ -558,7 +548,7 @@
   function renderStats() {
     const bk = window._bookings || [];
     const now = new Date(today);
-    const upcoming = bk.filter(b => new Date(b.checkin) >= now);
+    const upcoming = bk.filter(b => new Date(b.check_in) >= now);
     const bs = bookedSet();
     const dim = new Date(vy, vm+1, 0).getDate();
     let free = 0;
@@ -598,7 +588,7 @@
       if (b) {
         el.innerHTML += '<div class="cal-day-dot"></div>';
         el.onclick = () => openPopup(b);
-        el.title = b.name;
+        el.title = b.customer_name;
       }
       grid.appendChild(el);
     }
@@ -616,13 +606,13 @@
       return;
     }
     list.innerHTML = bk.map(b => {
-      const initials = b.name.split(' ').map(x=>x[0]).join('').slice(0,2);
+      const initials = b.customer_name.split(' ').map(x=>x[0]).join('').slice(0,2);
       const n = nights(b);
       return `<div class="booking-card" onclick="openPopup(${JSON.stringify(b).replace(/"/g,'&quot;')})">
         <div class="avatar">${initials}</div>
         <div class="booking-info">
-          <div class="booking-name">${b.name}</div>
-          <div class="booking-dates">${b.checkin} ← ${b.checkout}</div>
+          <div class="booking-name">${b.customer_name}</div>
+          <div class="booking-dates">${b.check_in} ← ${b.check_out}</div>
         </div>
         <div class="booking-nights">${n} ليلة</div>
         <button class="del-btn" onclick="event.stopPropagation();deleteBooking('${b.id}')" title="حذف">🗑</button>
@@ -642,12 +632,12 @@
   }
 
   async function addBooking() {
-    const name = document.getElementById('f-name').value.trim();
-    const ci   = document.getElementById('f-in').value;
-    const co   = document.getElementById('f-out').value;
+    const name  = document.getElementById('f-name').value.trim();
+    const ci    = document.getElementById('f-in').value;
+    const co    = document.getElementById('f-out').value;
     const phone = document.getElementById('f-phone').value.trim();
     const notes = document.getElementById('f-notes').value.trim();
-    const msg = document.getElementById('add-msg');
+    const msg   = document.getElementById('add-msg');
 
     const show = (txt, ok) => {
       msg.textContent = txt;
@@ -659,32 +649,40 @@
     if (!name || !ci || !co) { show('يرجى تعبئة الاسم والتواريخ', false); return; }
     if (ci >= co) { show('تاريخ الخروج يجب أن يكون بعد الدخول', false); return; }
 
-    try {
-      await window._push(window._bookingsRef, { name, checkin: ci, checkout: co, phone, notes, added: Date.now() });
-      document.getElementById('f-name').value = '';
-      document.getElementById('f-in').value = '';
-      document.getElementById('f-out').value = '';
-      document.getElementById('f-phone').value = '';
-      document.getElementById('f-notes').value = '';
-      document.getElementById('conflict').style.display = 'none';
-      show('✓ تم تسجيل الحجز — الشريك يشوفه الآن', true);
-    } catch(e) {
+    const { error } = await db.from('bookings').insert({
+      customer_name: name,
+      check_in: ci,
+      check_out: co,
+      phone: phone || null,
+      notes: notes || null
+    });
+
+    if (error) {
       show('خطأ في الحفظ — تحقق من الاتصال', false);
+      console.error(error);
+      return;
     }
+
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-in').value = '';
+    document.getElementById('f-out').value = '';
+    document.getElementById('f-phone').value = '';
+    document.getElementById('f-notes').value = '';
+    document.getElementById('conflict').style.display = 'none';
+    show('✓ تم تسجيل الحجز — الشريك يشوفه الآن', true);
   }
 
   async function deleteBooking(id) {
     if (!confirm('تأكيد حذف الحجز؟')) return;
-    try {
-      await window._remove(window._ref(window._db, 'bookings/' + id));
-    } catch(e) { alert('فشل الحذف'); }
+    const { error } = await db.from('bookings').delete().eq('id', id);
+    if (error) { alert('فشل الحذف'); console.error(error); }
   }
 
   function openPopup(b) {
     if (typeof b === 'string') b = JSON.parse(b);
-    document.getElementById('pop-name').textContent = b.name;
-    document.getElementById('pop-in').textContent = b.checkin;
-    document.getElementById('pop-out').textContent = b.checkout;
+    document.getElementById('pop-name').textContent = b.customer_name;
+    document.getElementById('pop-in').textContent = b.check_in;
+    document.getElementById('pop-out').textContent = b.check_out;
     document.getElementById('pop-nights').textContent = nights(b) + ' ليلة';
     const pr = document.getElementById('pop-phone-row');
     pr.style.display = b.phone ? '' : 'none';
@@ -725,36 +723,13 @@
   window.prevM = prevM;
   window.nextM = nextM;
   window.checkConflict = checkConflict;
-</script>
- <script>
-function showKafshah()
-{ const overlay = 
-  document.createElement('div');
-overlay.style.position = 'fixed';
-overlay.style.top = '0';
-overlay.style.left = '0';
-overlay.style.width = '100%';
-overlay.style.height = '100%';
-overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.9)';
-overlay.style.zIndex = '9999';
-overlay.style.display = 'flex';
-overlay.style.flexDirection = 'column';
-overlay.style.justifyContent = 'center';
-overlay.style.alignItems = 'center';
 
-// الكود يستخدم اسم الصورة الطويل اللي بالصورة بالضبط
-overlay.innerHTML = `
-    <img src="mnsor.png" style="max-width:90%; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-    <h1 style="color: white; margin-top: 20px; font-family: sans-serif; text-align: center;">إما حجزتو الحين... 😂</h1>
-`;
-
-document.body.appendChild(overlay);
-
-// يختفي المقلب بعد 7 ثواني ويرجع الموقع طبيعي
-setTimeout(() => { 
-    overlay.remove(); 
-}, 7000);
-}
+  // ═══════════════════════════════════════════
+  // تشغيل التطبيق
+  // ═══════════════════════════════════════════
+  loadBookings().then(() => {
+    document.getElementById('loading').classList.add('hide');
+  });
 </script>
 </body>
 </html>
