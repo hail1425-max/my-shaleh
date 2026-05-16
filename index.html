@@ -1019,9 +1019,8 @@
   })();
 
   // ─── INIT ───
-  loadBookings().then(() => {
-    document.getElementById('loading').classList.add('hide');
-  });
+  document.getElementById('loading').classList.add('hide');
+  loadBookings();
 </script>
 </body>
 </html>
