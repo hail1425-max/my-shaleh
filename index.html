@@ -32,8 +32,21 @@
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      overflow-x: hidden;
     }
-    .app { max-width: 480px; margin: 0 auto; padding: 0 0 90px; }
+
+    /* ─── STARS BACKGROUND ─── */
+    #stars-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .app { max-width: 480px; margin: 0 auto; padding: 0 0 90px; position: relative; z-index: 1; }
+    .tabs { z-index: 100; }
+    .overlay, .lightbox { z-index: 200; }
 
     /* ─── LOADING ─── */
     .loading {
@@ -431,6 +444,8 @@
   </style>
 </head>
 <body>
+
+<canvas id="stars-canvas"></canvas>
 
 <div class="loading" id="loading">
   <div class="spinner"></div>
@@ -915,6 +930,59 @@
     document.querySelectorAll('.hero-dot')[heroIdx].classList.add('active');
   }
   setInterval(() => setHero((heroIdx+1) % slides.length), 4000);
+
+  // ─── STARS ───
+  (function() {
+    const canvas = document.getElementById('stars-canvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resize() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function createStars() {
+      stars = [];
+      const count = Math.floor((canvas.width * canvas.height) / 4000);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 1.5 + 0.2,
+          alpha: Math.random(),
+          speed: Math.random() * 0.005 + 0.002,
+          dir: Math.random() > 0.5 ? 1 : -1,
+          color: Math.random() > 0.85 ? '#4f8aff' : (Math.random() > 0.7 ? '#a78bfa' : '#ffffff')
+        });
+      }
+      // Add a few shooting stars occasionally
+    }
+
+    function drawStars() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      stars.forEach(s => {
+        s.alpha += s.speed * s.dir;
+        if (s.alpha >= 1) { s.alpha = 1; s.dir = -1; }
+        if (s.alpha <= 0.1) { s.alpha = 0.1; s.dir = 1; }
+        ctx.save();
+        ctx.globalAlpha = s.alpha;
+        ctx.fillStyle = s.color;
+        ctx.shadowBlur = s.r * 3;
+        ctx.shadowColor = s.color;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+      requestAnimationFrame(drawStars);
+    }
+
+    resize();
+    createStars();
+    drawStars();
+    window.addEventListener('resize', () => { resize(); createStars(); });
+  })();
 
   // ─── INIT ───
   loadBookings().then(() => {
