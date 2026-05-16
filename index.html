@@ -630,24 +630,32 @@ function renderCal() {
 }
 
 function renderList() {
-  var bk = _bookings;
-  var list = document.getElementById('blist');
-  if (!bk.length) {
-    list.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg><p>لا توجد حجوزات بعد</p></div>';
-    return;
-  }
-  list.innerHTML = bk.map(function(b) {
-    var initials = b.customer_name.split(' ').map(function(x){return x[0];}).join('').slice(0,2);
-    var isH = b.booking_type === 'hours';
-    var dur = isH ? (b.start_time + ' — ' + b.end_time) : (b.check_in + ' - ' + b.check_out);
-    var badge = isH ? '<span class="booking-type type-hours">&#9200; ساعات</span>' : '<span class="booking-type type-nights">&#127769; ليالي</span>';
-   return '<div class="booking-card" onclick="openPopupStr(this)" data-b="' + JSON.stringify(b).replace(/\"/g, '&quot;') + '">' +
-      '<div class="avatar ' + (isH?'hours':'') + '">' + initials + '</div>' +
-      '<div class="booking-info"><div class="booking-name">' + b.customer_name + '</div><div class="booking-dates">' + dur + '</div></div>' +
-      badge +
-      '<button class="del-btn" onclick="event.stopPropagation();deleteBooking('' + b.id + '')">&#128465;</button></div>';
-  }).join('');
+    var bk = _bookings;
+    var list = document.getElementById('blist');
+    if (!bk.length) {
+        list.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>';
+        return;
+    }
+    list.innerHTML = bk.map(function(b) {
+        var initials = b.customer_name.split(' ').map(function(x){return x[0];}).join('').slice(0,2);
+        var isH = b.booking_type === 'hours';
+        var dur = isH ? (b.start_time + ' - ' + b.end_time) : (b.check_in + ' - ' + b.check_out);
+        var badge = isH ? '<span class="booking-type type-hours">&#9200; ساعات</span>' : '<span class="booking-type type-nights">&#127769; مبيتي</span>';
+        
+        return `
+        <div class="booking-card" onclick="openPopupStr(this)" data-b='${JSON.stringify(b).replace(/'/g, "&apos;")}'>
+            <div class="avatar">${initials}</div>
+            <div class="booking-info">
+                <div class="booking-name">${b.customer_name}</div>
+                <div class="booking-dates">${dur}</div>
+            </div>
+            ${badge}
+            <button class="del-btn" onclick="event.stopPropagation();deleteBooking('${b.id}')">&#128465;</button>
+        </div>
+        `;
+    }).join('');
 }
+
 
 function openPopupStr(el) {
   var b = JSON.parse(el.getAttribute('data-b'));
