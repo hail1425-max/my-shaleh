@@ -641,7 +641,7 @@ function renderList() {
     var isH = b.booking_type === 'hours';
     var dur = isH ? (b.start_time + ' — ' + b.end_time) : (b.check_in + ' - ' + b.check_out);
     var badge = isH ? '<span class="booking-type type-hours">&#9200; ساعات</span>' : '<span class="booking-type type-nights">&#127769; ليالي</span>';
-    return '<div class="booking-card" onclick="openPopupStr(this)"  data-b='' + JSON.stringify(b).replace(/'/g,"&#39;") + ''>' +
+   return '<div class="booking-card" onclick="openPopupStr(this)" data-b="' + JSON.stringify(b).replace(/\"/g, '&quot;') + '">' +
       '<div class="avatar ' + (isH?'hours':'') + '">' + initials + '</div>' +
       '<div class="booking-info"><div class="booking-name">' + b.customer_name + '</div><div class="booking-dates">' + dur + '</div></div>' +
       badge +
